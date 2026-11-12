@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Clockwork Kinetics</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts for retro industrial feel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <style>
+    body {
+      font-family: 'Share Tech Mono', monospace;
+      user-select: none;
+      -webkit-user-select: none;
+      background-color: #1a110b;
+      color: #e2d1c3;
+      overflow: hidden;
+    }
+    
+    h1, h2, h3, .font-cinzel {
+      font-family: 'Cinzel', serif;
+    }
+
+    /* Wood workbench texture overlay */
+    .wood-bg {
+      background-color: #2a1b12;
+      background-image: 
+        radial-gradient(ellipse at center, rgba(42, 27, 18, 0.4) 0%, rgba(15, 9, 5, 0.95) 100%),
+        repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0, 0, 0, 0.15) 3px, rgba(0, 0, 0, 0.15) 6px);
+    }
+
+    /* Metal UI panel styling */
+    .metal-panel {
+      background: linear-gradient(145deg, #3a3f47, #24272c);
+      border: 2px solid #5a616d;
+      box-shadow: inset 1px 1px 0px rgba(255,255,255,0.2), inset -1px -1px 0px rgba(0,0,0,0.5), 0 8px 20px rgba(0,0,0,0.7);
+    }
+
+    .brass-panel {
+      background: linear-gradient(145deg, #b8860b, #785807);
+      border: 2px solid #e6c667;
+      box-shadow: inset 1px 1px 0px rgba(255,255,255,0.4), inset -1px -1px 0px rgba(0,0,0,0.6), 0 6px 15px rgba(0,0,0,0.6);
+      color: #2a1b04;
+    }
+
+    /* Steampunk / Erector button styling */
+    .btn-metal {
+      background: linear-gradient(180deg, #525964 0%, #31363e 100%);
+      border: 2px solid #7d8796;
+      box-shadow: 0 4px 0 #181b1f, 0 5px 10px rgba(0,0,0,0.5);
+      transition: all 0.08s ease;
+    }
+    .btn-metal:hover {
+      background: linear-gradient(180deg, #626a77 0%, #3c424c 100%);
+      border-color: #9cb0c9;
+    }
+    .btn-metal:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #181b1f, 0 2px 5px rgba(0,0,0,0.5);
+    }
+
+    .btn-brass {
+      background: linear-gradient(180deg, #d4af37 0%, #997a15 100%);
+      border: 2px solid #f9e29c;
+      color: #291a03;
+      font-weight: bold;
+      box-shadow: 0 4px 0 #594506, 0 5px 10px rgba(0,0,0,0.5);
+      transition: all 0.08s ease;
+    }
+    .btn-brass:hover {
+      background: linear-gradient(180deg, #e5c148 0%, #b38f1a 100%);
+      border-color: #fff2c4;
+    }
+    .btn-brass:active {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 #594506, 0 2px 5px rgba(0,0,0,0.5);
+    }
+
+    .btn-power-active {
+      background: linear-gradient(180deg, #28a745 0%, #145a23 100%) !important;
+      border-color: #62e37d !important;
+      color: #ffffff !important;
+      box-shadow: 0 0 15px rgba(40, 167, 69, 0.6), 0 4px 0 #0a2d11 !important;
+    }
+
+    /* Canvas styling */
+    canvas {
+      touch-action: none;
+      cursor: crosshair;
+    }
+
+    /* Custom scrollbar for inventory tray */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #1e2126;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #4a515d;
+      border-radius: 4px;
+      border: 1px solid #6b7485;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #626a7a;
+    }
+  </style>
+</head>
+<body class="w-screen h-screen flex flex-col wood-bg select-none">
+
+  <!-- TOP HEADER / HUD BAR -->
+  <header class="h-16 metal-panel px-6 flex items-center justify-between z-10 shrink-0">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-full brass-panel flex items-center justify-center text-xl shadow-inner">
+        <i class="fa-solid fa-gear fa-spin" style="animation-duration: 10s;"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-black text-amber-200 tracking-wider font-cinzel leading-none">CLOCKWORK KINETICS</h1>
+        <span class="text-xs text-gray-400 font-mono">MECCANO MECHANICS SIMULATION</span>
+      </div>
+    </div>
+
+    <!-- Level Controls & HUD -->
+    <div class="flex items-center gap-4">
+      <div class="flex items-center gap-2 bg-black/40 px-3 py-1.5 rounded-lg border border-gray-700">
+        <label for="level-select" class="text-xs text-amber-400 uppercase font-bold">Level:</label>
+        <select id="level-select" class="bg-gray-900 text-amber-200 text-sm px-2 py-1 rounded border border-amber-700/50 outline-none cursor-pointer">
+          <option value="1">1: Gear Train Basics</option>
+          <option value="2">2: Long Belt Link</option>
+          <option value="3">3: Speed & Direction Shift</option>
+          <option value="4">4: Chassis Obstacle</option>
+          <option value="0">Sandbox Mode</option>
+        </select>
+      </div>
+
+      <button id="btn-reset" class="btn-metal px-3 py-1.5 rounded text-xs text-gray-200 flex items-center gap-2" title="Reset Level Workspace">
+        <i class="fa-solid fa-rotate-left"></i> Reset
+      </button>
+
+      <button id="btn-clear" class="btn-metal px-3 py-1.5 rounded text-xs text-red-300 flex items-center gap-2" title="Clear All Custom Parts">
+        <i class="fa-solid fa-trash-can"></i> Clear
+      </button>
+
+      <div class="h-8 w-px bg-gray-700 mx-1"></div>
+
+      <!-- MASTER POWER SWITCH -->
+      <button id="btn-power" class="btn-brass px-6 py-2 rounded-lg text-sm flex items-center gap-3 tracking-wide">
+        <i id="power-icon" class="fa-solid fa-play"></i>
+        <span id="power-text">ENGAGE MOTOR</span>
+        <span class="text-[10px] opacity-60 bg-black/30 px-1.5 py-0.5 rounded font-mono">[SPACE]</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE LAYOUT -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- LEFT COMPONENT TRAY / PALETTE -->
+    <aside class="w-64 metal-panel border-r-2 border-gray-700 flex flex-col z-10 shrink-0">
+      <div class="p-3 bg-black/30 border-b border-gray-700 flex items-center justify-between">
+        <h2 class="text-xs font-bold text-amber-400 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-toolbox"></i> Erect-Set Parts Bin
+        </h2>
+        <span class="text-[10px] text-gray-400">Click / Drag</span>
+      </div>
+
+      <div id="parts-tray" class="flex-1 overflow-y-auto p-3 space-y-3">
+        <!-- Gear Small -->
+        <div data-type="gear-small" class="tray-item bg-gray-800/80 hover:bg-gray-700/80 p-2.5 rounded-lg border border-gray-600 cursor-grab flex items-center gap-3 transition">
+          <div class="w-10 h-10 rounded bg-amber-900/40 border border-amber-600/50 flex items-center justify-center text-amber-400 text-lg">
+            <i class="fa-solid fa-gear"></i>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-amber-200">Small Brass Gear</div>
+            <div class="text-[10px] text-gray-400">12 Teeth | Radius: 30px</div>
+          </div>
+        </div>
+
+        <!-- Gear Medium -->
+        <div data-type="gear-medium" class="tray-item bg-gray-800/80 hover:bg-gray-700/80 p-2.5 rounded-lg border border-gray-600 cursor-grab flex items-center gap-3 transition">
+          <div class="w-10 h-10 rounded bg-amber-900/40 border border-amber-600/50 flex items-center justify-center text-amber-400 text-xl">
+            <i class="fa-solid fa-gear"></i>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-amber-200">Medium Steel Gear</div>
+            <div class="text-[10px] text-gray-400">24 Teeth | Radius: 50px</div>
+          </div>
+        </div>
+
+        <!-- Gear Large -->
+        <div data-type="gear-large" class="tray-item bg-gray-800/80 hover:bg-gray-700/80 p-2.5 rounded-lg border border-gray-600 cursor-grab flex items-center gap-3 transition">
+          <div class="w-10 h-10 rounded bg-amber-900/40 border border-amber-600/50 flex items-center justify-center text-amber-400 text-2xl">
+            <i class="fa-solid fa-gear"></i>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-amber-200">Large Iron Gear</div>
+            <div class="text-[10px] text-gray-400">36 Teeth | Radius: 70px</div>
+          </div>
+        </div>
+
+        <!-- Pulley Wheel -->
+        <div data-type="pulley" class="tray-item bg-gray-800/80 hover:bg-gray-700/80 p-2.5 rounded-lg border border-gray-600 cursor-grab flex items-center gap-3 transition">
+          <div class="w-10 h-10 rounded bg-gray-900 border border-gray-500 flex items-center justify-center text-gray-300 text-lg">
+            <i class="fa-solid fa-circle-dot"></i>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-amber-200">Belt Pulley</div>
+            <div class="text-[10px] text-gray-400">Axle Mount | Drive Hub</div>
+          </div>
+        </div>
+
+        <!-- Belt Connector Tool -->
+        <div id="tool-belt" class="tray-item bg-gray-800/80 hover:bg-gray-700/80 p-2.5 rounded-lg border border-amber-600/60 cursor-pointer flex items-center gap-3 transition">
+          <div class="w-10 h-10 rounded bg-amber-950/60 border border-amber-500 flex items-center justify-center text-amber-400 text-base">
+            <i class="fa-solid fa-link"></i>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-amber-300">Rubber Belt</div>
+            <div class="text-[10px] text-gray-400">Click 2 Pulleys to Link</div>
+          </div>
+        </div>
+
+        <!-- Steel Beam Linkage -->
+        <div data-type="beam" class="tray-item bg-gray-800/80 hover:bg-gray-700/80 p-2.5 rounded-lg border border-gray-600 cursor-grab flex items-center gap-3 transition">
+          <div class="w-10 h-10 rounded bg-gray-900 border border-gray-500 flex items-center justify-center text-gray-400 text-lg">
+            <i class="fa-solid fa-minus rotate-45"></i>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-amber-200">Perforated Girder</div>
+            <div class="text-[10px] text-gray-400">Steel Bar with Pin Holes</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INSTRUCTIONS BOX -->
+      <div class="p-3 bg-black/40 border-t border-gray-700 text-[11px] text-gray-300 space-y-1.5">
+        <div class="font-bold text-amber-400 flex items-center gap-1.5">
+          <i class="fa-solid fa-circle-info"></i> Controls Guide:
+        </div>
+        <div>• <b>Drag Parts:</b> Snap to pegboard grid.</div>
+        <div>• <b>Select Part:</b> Press <kbd class="px-1 bg-gray-800 rounded border border-gray-600">R</kbd> or Scroll Trackpad to rotate beams.</div>
+        <div>• <b>Delete:</b> Select item & press <kbd class="px-1 bg-gray-800 rounded border border-gray-600">DEL</kbd> / <kbd class="px-1 bg-gray-800 rounded border border-gray-600">Backspace</kbd>.</div>
+        <div>• <b>Spacebar:</b> Toggle Kinetic Engine.</div>
+      </div>
+    </aside>
+
+    <!-- CENTER CANVAS WORKBENCH -->
+    <main class="flex-1 relative flex flex-col items-center justify-center overflow-hidden">
+      
+      <!-- LEVEL OBJECTIVE BANNER -->
+      <div class="absolute top-4 left-6 right-6 z-10 pointer-events-none flex justify-between items-start">
+        <div class="bg-black/80 backdrop-blur-md border border-amber-600/50 px-4 py-2.5 rounded-xl shadow-2xl max-w-lg pointer-events-auto">
+          <div id="level-title" class="text-sm font-bold text-amber-300 font-cinzel">Level Objective</div>
+          <div id="level-desc" class="text-xs text-gray-300 mt-0.5">Connect the Steam Engine to the Brass Chime Bell using gears.</div>
+        </div>
+
+        <!-- LIVE TELEMETRY DISPLAY -->
+        <div class="bg-black/80 backdrop-blur-md border border-gray-700 px-4 py-2.5 rounded-xl shadow-2xl text-right font-mono text-xs space-y-1">
+          <div class="text-gray-400 text-[10px] uppercase tracking-wider font-bold">Kinetic Diagnostics</div>
+          <div class="text-emerald-400">Motor Speed: <span id="telemetry-rpm" class="font-bold">120 RPM</span></div>
+          <div class="text-amber-300">Target State: <span id="telemetry-target" class="font-bold text-red-400">INACTIVE</span></div>
+        </div>
+      </div>
+
+      <!-- THE WORKBENCH CANVAS -->
+      <canvas id="workbench" class="w-full h-full block"></canvas>
+
+      <!-- VICTORY OVERLAY -->
+      <div id="victory-modal" class="hidden absolute inset-0 bg-black/75 backdrop-blur-sm z-30 flex items-center justify-center p-4">
+        <div class="brass-panel p-8 rounded-2xl max-w-md text-center shadow-2xl border-4 border-amber-300 transform scale-100 transition-all">
+          <div class="w-16 h-16 rounded-full bg-amber-200 border-2 border-amber-700 mx-auto flex items-center justify-center text-3xl text-amber-900 shadow-lg mb-4">
+            <i class="fa-solid fa-bell-concierge fa-bounce"></i>
+          </div>
+          <h2 class="text-2xl font-black text-amber-950 font-cinzel mb-1">KINETIC SUCCESS!</h2>
+          <p class="text-xs text-amber-900 font-bold mb-4">Mechanism fully connected & objective achieved!</p>
+          <p id="victory-desc" class="text-sm text-amber-900 mb-6 bg-amber-100/60 p-3 rounded-lg border border-amber-700/30">
+            The kinetic transfer completed seamlessly, ringing the master chime at target frequency.
+          </p>
+          <div class="flex justify-center gap-4">
+            <button id="btn-next-level" class="btn-metal px-6 py-2.5 rounded-lg text-sm text-amber-200 font-bold flex items-center gap-2">
+              Next Level <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    /* ========================================================================
+       CLOCKWORK KINETICS - ENGINE & GAME LOGIC
+       ======================================================================== */
+
+    // --- Audio System (Web Audio API Procedural Audio) ---
+    class AudioController {
+      constructor() {
+        this.ctx = null;
+        this.motorOsc = null;
+        this.motorGain = null;
+        this.initialized = false;
+      }
+
+      init() {
+        if (this.initialized) return;
+        try {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          this.ctx = new AudioContext();
+          this.initialized = true;
+        } catch (e) {
+          console.warn("Web Audio API not supported", e);
+        }
+      }
+
+      playClick() {
+        if (!this.initialized) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(400, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, this.ctx.currentTime + 0.04);
+        gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.04);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.04);
+      }
+
+      playSnap() {
+        if (!this.initialized) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(200, this.ctx.currentTime + 0.06);
+        gain.gain.setValueAtTime(0.2, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, this.ctx.currentTime + 0.06);
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.06);
+      }
+
+      startMotorSound() {
+        if (!this.initialized) this.init();
+        if (this.motorOsc || !this.ctx) return;
+        
+        this.motorOsc = this.ctx.createOscillator();
+        this.motorGain = this.ctx.createGain();
+        this.motorOsc.type = 'sawtooth';
+        this.motorOsc.frequency.setValueAtTime(55, this.ctx.currentTime); // Low engine hum
+
+        // Filter for mechanical muffling
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(350, this.ctx.currentTime);
+
+        this.motorGain.gain.setValueAtTime(0.01, this.ctx.currentTime);
+        this.motorGain.gain.linearRampToValueAtTime(0.08, this.ctx.currentTime + 0.3);
+
+        this.motorOsc.connect(filter);
+        filter.connect(this.motorGain);
+        this.motorGain.connect(this.ctx.destination);
+        this.motorOsc.start();
+      }
+
+      stopMotorSound() {
+        if (this.motorOsc && this.ctx) {
+          this.motorGain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.2);
+          setTimeout(() => {
+            if (this.motorOsc) {
+              this.motorOsc.stop();
+              this.motorOsc.disconnect();
+              this.motorOsc = null;
+              this.motorGain = null;
+            }
+          }, 200);
+        }
+      }
+
+      playChime() {
+        if (!this.initialized) return;
+        const now = this.ctx.currentTime;
+        // Two harmonizing sine waves for clear brass bell chime
+        [523.25, 659.25, 783.99].forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, now + i * 0.08);
+          gain.gain.setValueAtTime(0.3, now + i * 0.08);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 1.5);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now + i * 0.08);
+          osc.stop(now + i * 0.08 + 1.5);
+        });
+      }
+    }
+
+    const audio = new AudioController();
+
+    // --- Game Engine Variables ---
+    const canvas = document.getElementById('workbench');
+    const ctx = canvas.getContext('2d');
+
+    const GRID_SIZE = 25; // Snap grid step
+    let isRunning = false;
+    let currentLevel = 1;
+    let components = [];
+    let belts = [];
+    let obstacles = [];
+    let selectedComponent = null;
+    let draggingComponent = null;
+    let dragOffset = { x: 0, y: 0 };
+    let beltSourcePulley = null;
+    let isBeltToolActive = false;
+    let particles = [];
+
+    // Level Target Parameters
+    let targetComponent = null;
+    let motorComponent = null;
+    let levelCompleted = false;
+
+    // --- Component Definitions ---
+    class Component {
+      constructor(id, type, x, y, radius = 30) {
+        this.id = id || Math.random().toString(36).substr(2, 9);
+        this.type = type; // 'gear-small', 'gear-medium', 'gear-large', 'pulley', 'beam', 'motor', 'target-bell'
+        this.x = Math.round(x / GRID_SIZE) * GRID_SIZE;
+        this.y = Math.round(y / GRID_SIZE) * GRID_SIZE;
+        this.radius = radius;
+        this.rotation = 0; // In Radians
+        this.angularVelocity = 0; // Speed & Direction (+/-)
+        this.teeth = type === 'gear-small' ? 12 : (type === 'gear-medium' ? 24 : 36);
+        this.isFixed = false; // Cannot be dragged if true (Motor/Target)
+        this.beamLength = 150;
+        this.beamAngle = 0; // Angle for structural beams
+        this.isPowered = false;
+      }
+
+      getDiameter() {
+        return this.radius * 2;
+      }
+    }
+
+    // --- Level Setup Configurations ---
+    const levelConfigs = {
+      1: {
+        title: "Level 1: Gear Train Basics",
+        desc: "Connect the Steam Motor on the left to the Brass Chime on the right using gears so they mesh together.",
+        setup: () => {
+          components = [];
+          belts = [];
+          obstacles = [];
+          
+          // Fixed Motor
+          motorComponent = new Component('motor', 'motor', 150, 300, 45);
+          motorComponent.isFixed = true;
+          components.push(motorComponent);
+
+          // Fixed Target Bell
+          targetComponent = new Component('bell', 'target-bell', 600, 300, 40);
+          targetComponent.isFixed = true;
+          targetComponent.targetDirection = 1; // Any direction
+          components.push(targetComponent);
+        },
+        checkVictory: () => {
+          return targetComponent && Math.abs(targetComponent.angularVelocity) > 0.01;
+        }
+      },
+      2: {
+        title: "Level 2: Long Distance Belt Link",
+        desc: "The gap between the Motor and Target is too wide for gears alone. Use Pulleys and a Rubber Belt to span the distance.",
+        setup: () => {
+          components = [];
+          belts = [];
+          obstacles = [];
+
+          motorComponent = new Component('motor', 'motor', 150, 200, 45);
+          motorComponent.isFixed = true;
+          components.push(motorComponent);
+
+          targetComponent = new Component('bell', 'target-bell', 750, 450, 40);
+          targetComponent.isFixed = true;
+          components.push(targetComponent);
+        },
+        checkVictory: () => {
+          return targetComponent && Math.abs(targetComponent.angularVelocity) > 0.01;
+        }
+      },
+      3: {
+        title: "Level 3: Speed & Direction Shift",
+        desc: "Make the Target Bell rotate CLOCKWISE (Right) at high speed. Combine small and large gears to step up the ratio!",
+        setup: () => {
+          components = [];
+          belts = [];
+          obstacles = [];
+
+          motorComponent = new Component('motor', 'motor', 150, 350, 45);
+          motorComponent.isFixed = true;
+          components.push(motorComponent);
+
+          targetComponent = new Component('bell', 'target-bell', 650, 350, 40);
+          targetComponent.isFixed = true;
+          targetComponent.requiredDirection = 1; // Must be positive (Clockwise)
+          targetComponent.minSpeed = 0.04;
+          components.push(targetComponent);
+        },
+        checkVictory: () => {
+          return targetComponent && targetComponent.angularVelocity > targetComponent.minSpeed;
+        }
+      },
+      4: {
+        title: "Level 4: Chassis Obstacle",
+        desc: "A solid steel chassis barrier blocks the direct path. Route your kinetic connection around the frame!",
+        setup: () => {
+          components = [];
+          belts = [];
+          obstacles = [];
+
+          motorComponent = new Component('motor', 'motor', 150, 180, 45);
+          motorComponent.isFixed = true;
+          components.push(motorComponent);
+
+          targetComponent = new Component('bell', 'target-bell', 650, 480, 40);
+          targetComponent.isFixed = true;
+          components.push(targetComponent);
+
+          // Central Steel Plate Obstacle
+          obstacles.push({ x: 340, y: 220, w: 160, h: 220 });
+        },
+        checkVictory: () => {
+          return targetComponent && Math.abs(targetComponent.angularVelocity) > 0.01;
+        }
+      },
+      0: {
+        title: "Sandbox Mode: Open Workbench",
+        desc: "Unlimited freedom! Build massive clockwork chains, gear reductions, and pulley networks.",
+        setup: () => {
+          components = [];
+          belts = [];
+          obstacles = [];
+
+          motorComponent = new Component('motor', 'motor', 150, 300, 45);
+          motorComponent.isFixed = true;
+          components.push(motorComponent);
+
+          targetComponent = new Component('bell', 'target-bell', 750, 300, 40);
+          targetComponent.isFixed = true;
+          components.push(targetComponent);
+        },
+        checkVictory: () => false
+      }
+    };
+
+    // --- Resize Canvas ---
+    function resizeCanvas() {
+      const container = canvas.parentElement;
+      canvas.width = container.clientWidth;
+      canvas.height = container.clientHeight;
+    }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    // --- Load Level ---
+    function loadLevel(lvl) {
+      currentLevel = lvl;
+      levelCompleted = false;
+      isRunning = false;
+      audio.stopMotorSound();
+
+      document.getElementById('level-select').value = lvl;
+      document.getElementById('victory-modal').classList.add('hidden');
+      updatePowerButtonUI();
+
+      const config = levelConfigs[lvl];
+      document.getElementById('level-title').innerText = config.title;
+      document.getElementById('level-desc').innerText = config.desc;
+
+      config.setup();
+    }
+
+    // --- Physics Propagation Algorithm ---
+    function updateKinematics() {
+      // Reset angular velocities
+      components.forEach(c => {
+        if (c.type !== 'motor') c.angularVelocity = 0;
+      });
+
+      if (!isRunning || !motorComponent) return;
+
+      // Motor constant drive speed
+      const MOTOR_SPEED = 0.05; // Base rotation radians/frame
+      motorComponent.angularVelocity = MOTOR_SPEED;
+
+      let visited = new Set();
+      let queue = [motorComponent];
+      visited.add(motorComponent.id);
+
+      // BFS to propagate rotation through gear meshing & belts
+      while (queue.length > 0) {
+        let current = queue.shift();
+
+        // 1. Check Gear Meshing (Physical contact between gear radii)
+        components.forEach(other => {
+          if (visited.has(other.id)) return;
+
+          // Beams don't mesh directly like gears
+          if (current.type === 'beam' || other.type === 'beam') return;
+
+          const dx = other.x - current.x;
+          const dy = other.y - current.y;
+          const dist = Math.hypot(dx, dy);
+
+          // Gear meshing distance tolerance (sum of radii ± grid snap buffer)
+          const targetDist = current.radius + other.radius;
+          if (Math.abs(dist - targetDist) < 14) {
+            // Opposite rotation direction for meshed gears
+            const gearRatio = current.radius / other.radius;
+            other.angularVelocity = -current.angularVelocity * gearRatio;
+            visited.add(other.id);
+            queue.push(other);
+
+            // Spawn subtle friction spark particles at contact point
+            if (Math.random() < 0.2) {
+              const midX = current.x + (dx * current.radius / dist);
+              const midY = current.y + (dy * current.radius / dist);
+              spawnSpark(midX, midY);
+            }
+          }
+        });
+
+        // 2. Check Belt Connections
+        belts.forEach(belt => {
+          let connected = null;
+          if (belt.p1.id === current.id && !visited.has(belt.p2.id)) {
+            connected = belt.p2;
+          } else if (belt.p2.id === current.id && !visited.has(belt.p1.id)) {
+            connected = belt.p1;
+          }
+
+          if (connected) {
+            // Belt transfers same direction rotation scaled by pulley ratio
+            const ratio = current.radius / connected.radius;
+            connected.angularVelocity = current.angularVelocity * ratio;
+            visited.add(connected.id);
+            queue.push(connected);
+          }
+        });
+      }
+
+      // Update rotation angles
+      components.forEach(c => {
+        c.rotation += c.angularVelocity;
+      });
+
+      // Update HUD telemetry
+      const rpm = Math.round(Math.abs((motorComponent.angularVelocity || 0) * 60 * 10));
+      document.getElementById('telemetry-rpm').innerText = isRunning ? `${rpm} RPM` : '0 RPM';
+      
+      const targetActive = targetComponent && Math.abs(targetComponent.angularVelocity) > 0.005;
+      const targetUI = document.getElementById('telemetry-target');
+      if (targetActive) {
+        targetUI.innerText = 'ACTIVE (POWERED)';
+        targetUI.className = 'font-bold text-emerald-400';
+      } else {
+        targetUI.innerText = 'INACTIVE';
+        targetUI.className = 'font-bold text-red-400';
+      }
+
+      // Check Victory condition for puzzle levels
+      if (isRunning && !levelCompleted && currentLevel !== 0) {
+        if (levelConfigs[currentLevel].checkVictory()) {
+          levelCompleted = true;
+          audio.playChime();
+          setTimeout(() => {
+            document.getElementById('victory-modal').classList.remove('hidden');
+          }, 400);
+        }
+      }
+    }
+
+    // --- Particle Effects ---
+    function spawnSpark(x, y) {
+      particles.push({
+        x: x,
+        y: y,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        life: 1.0,
+        color: '#fce07e'
+      });
+    }
+
+    function updateParticles() {
+      for (let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life -= 0.05;
+        if (p.life <= 0) particles.splice(i, 1);
+      }
+    }
+
+    // --- RENDER LOOP ---
+    function render() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // 1. Draw Erector Pegboard Grid (Perforated Sheet Metal Background)
+      ctx.fillStyle = '#22160e';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#120b06';
+      ctx.strokeStyle = '#382417';
+      ctx.lineWidth = 1;
+
+      for (let x = GRID_SIZE; x < canvas.width; x += GRID_SIZE) {
+        for (let y = GRID_SIZE; y < canvas.height; y += GRID_SIZE) {
+          ctx.beginPath();
+          ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // 2. Draw Chassis Obstacles
+      obstacles.forEach(obs => {
+        ctx.save();
+        // Dark steel plate texture
+        ctx.fillStyle = '#1c2026';
+        ctx.strokeStyle = '#4b525d';
+        ctx.lineWidth = 4;
+        ctx.fillRect(obs.x, obs.y, obs.w, obs.h);
+        ctx.strokeRect(obs.x, obs.y, obs.w, obs.h);
+
+        // Cross rivets on obstacle plate
+        ctx.fillStyle = '#7a8494';
+        [
+          [obs.x + 10, obs.y + 10], [obs.x + obs.w - 10, obs.y + 10],
+          [obs.x + 10, obs.y + obs.h - 10], [obs.x + obs.w - 10, obs.y + obs.h - 10]
+        ].forEach(([rx, ry]) => {
+          ctx.beginPath();
+          ctx.arc(rx, ry, 4, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        ctx.fillStyle = '#ef4444';
+        ctx.font = '10px Share Tech Mono';
+        ctx.fillText('STATIONARY CHASSIS', obs.x + 10, obs.y + obs.h / 2);
+        ctx.restore();
+      });
+
+      // 3. Draw Rubber Belts
+      belts.forEach(belt => {
+        ctx.save();
+        ctx.strokeStyle = '#1a1815';
+        ctx.lineWidth = 7;
+        ctx.beginPath();
+        ctx.moveTo(belt.p1.x, belt.p1.y);
+        ctx.lineTo(belt.p2.x, belt.p2.y);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#85532b'; // Textured inner belt strip
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(belt.p1.x, belt.p1.y);
+        ctx.lineTo(belt.p2.x, belt.p2.y);
+        ctx.stroke();
+        ctx.restore();
+      });
+
+      // Active Belt Drag Line
+      if (beltSourcePulley) {
+        ctx.save();
+        ctx.strokeStyle = '#f59e0b';
+        ctx.setLineDash([6, 4]);
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(beltSourcePulley.x, beltSourcePulley.y);
+        ctx.lineTo(mousePos.x, mousePos.y);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // 4. Draw Components
+      components.forEach(comp => {
+        ctx.save();
+        ctx.translate(comp.x, comp.y);
+
+        // Highlight Selected Component
+        if (selectedComponent === comp) {
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 2;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath();
+          ctx.arc(0, 0, comp.radius + 8, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        if (comp.type.startsWith('gear')) {
+          // --- GEAR DRAWING ---
+          ctx.rotate(comp.rotation);
+
+          // Gear Teeth
+          const teeth = comp.teeth;
+          const outerR = comp.radius;
+          const innerR = comp.radius - 8;
+          
+          ctx.fillStyle = comp.type === 'gear-small' ? '#d97706' : (comp.type === 'gear-medium' ? '#94a3b8' : '#78350f');
+          ctx.strokeStyle = '#1e293b';
+          ctx.lineWidth = 1.5;
+
+          ctx.beginPath();
+          for (let i = 0; i < teeth; i++) {
+            const angle = (i / teeth) * Math.PI * 2;
+            const nextAngle = ((i + 0.5) / teeth) * Math.PI * 2;
+            const endAngle = ((i + 1) / teeth) * Math.PI * 2;
+
+            const x1 = Math.cos(angle) * innerR;
+            const y1 = Math.sin(angle) * innerR;
+            const x2 = Math.cos(angle) * outerR;
+            const y2 = Math.sin(angle) * outerR;
+            const x3 = Math.cos(nextAngle) * outerR;
+            const y3 = Math.sin(nextAngle) * outerR;
+            const x4 = Math.cos(endAngle) * innerR;
+            const y4 = Math.sin(endAngle) * innerR;
+
+            if (i === 0) ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.lineTo(x3, y3);
+            ctx.lineTo(x4, y4);
+          }
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+
+          // Inner Gear Plate & Spokes
+          ctx.fillStyle = '#475569';
+          ctx.beginPath();
+          ctx.arc(0, 0, innerR - 2, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          // Cutout Holes in Gear Plate (Meccano style)
+          ctx.fillStyle = '#22160e';
+          for (let s = 0; s < 4; s++) {
+            const sa = (s / 4) * Math.PI * 2;
+            const hx = Math.cos(sa) * (innerR * 0.5);
+            const hy = Math.sin(sa) * (innerR * 0.5);
+            ctx.beginPath();
+            ctx.arc(hx, hy, innerR * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // Center Brass Hub
+          ctx.fillStyle = '#f59e0b';
+          ctx.beginPath();
+          ctx.arc(0, 0, 8, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+        } else if (comp.type === 'pulley') {
+          // --- PULLEY DRAWING ---
+          ctx.rotate(comp.rotation);
+          ctx.fillStyle = '#334155';
+          ctx.strokeStyle = '#cbd5e1';
+          ctx.lineWidth = 2;
+
+          ctx.beginPath();
+          ctx.arc(0, 0, comp.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          // Inner Groove Ring
+          ctx.strokeStyle = '#0f172a';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(0, 0, comp.radius - 4, 0, Math.PI * 2);
+          ctx.stroke();
+
+          // Rotation Marker Dot
+          ctx.fillStyle = '#f59e0b';
+          ctx.beginPath();
+          ctx.arc(comp.radius - 8, 0, 4, 0, Math.PI * 2);
+          ctx.fill();
+
+        } else if (comp.type === 'beam') {
+          // --- PERFORATED STEEL BEAM ---
+          ctx.rotate(comp.beamAngle);
+          const len = comp.beamLength;
+          const h = 24;
+
+          ctx.fillStyle = '#64748b';
+          ctx.strokeStyle = '#1e293b';
+          ctx.lineWidth = 2;
+
+          // Round-ended beam shape
+          ctx.beginPath();
+          ctx.roundRect(-len / 2, -h / 2, len, h, 12);
+          ctx.fill();
+          ctx.stroke();
+
+          // Perforated Bolt Holes
+          ctx.fillStyle = '#22160e';
+          const holeSpacing = 25;
+          const numHoles = Math.floor((len - 20) / holeSpacing);
+          const startX = -((numHoles - 1) * holeSpacing) / 2;
+
+          for (let i = 0; i < numHoles; i++) {
+            ctx.beginPath();
+            ctx.arc(startX + i * holeSpacing, 0, 4.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+        } else if (comp.type === 'motor') {
+          // --- MASTER STEAM/ELECTRIC MOTOR ---
+          ctx.fillStyle = '#1e293b';
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 3;
+
+          ctx.beginPath();
+          ctx.roundRect(-45, -45, 90, 90, 12);
+          ctx.fill();
+          ctx.stroke();
+
+          // Motor Coils / Design
+          ctx.fillStyle = '#b45309';
+          ctx.fillRect(-30, -30, 60, 60);
+
+          ctx.rotate(comp.rotation);
+          ctx.fillStyle = '#fef08a';
+          ctx.beginPath();
+          ctx.arc(0, 0, comp.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#78350f';
+          ctx.stroke();
+
+          // Drive Pin Shaft
+          ctx.fillStyle = '#1e293b';
+          ctx.fillRect(-4, -comp.radius, 8, comp.radius * 2);
+
+        } else if (comp.type === 'target-bell') {
+          // --- BRASS CHIME BELL TARGET ---
+          ctx.rotate(comp.rotation);
+
+          // Outer Bell Dome
+          ctx.fillStyle = Math.abs(comp.angularVelocity) > 0.005 ? '#facc15' : '#ca8a04';
+          ctx.strokeStyle = '#78350f';
+          ctx.lineWidth = 3;
+
+          ctx.beginPath();
+          ctx.arc(0, 0, comp.radius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+
+          // Inner Striker Clapper
+          ctx.fillStyle = '#451a03';
+          ctx.beginPath();
+          ctx.arc(comp.radius * 0.5, 0, 6, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = '#78350f';
+          ctx.font = 'bold 10px Share Tech Mono';
+          ctx.textAlign = 'center';
+          ctx.fillText('TARGET', 0, 4);
+        }
+
+        ctx.restore();
+      });
+
+      // 5. Draw Particles (Sparks)
+      particles.forEach(p => {
+        ctx.save();
+        ctx.globalAlpha = p.life;
+        ctx.fillStyle = p.color;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      // Update Engine & Physics
+      updateKinematics();
+      updateParticles();
+
+      requestAnimationFrame(render);
+    }
+
+    // --- INTERACTION & CONTROLS ---
+    let mousePos = { x: 0, y: 0 };
+
+    function getCanvasPoint(e) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+      };
+    }
+
+    // Tray Drag & Drop Creation
+    document.querySelectorAll('.tray-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        audio.init();
+        const type = item.getAttribute('data-type');
+        if (type === 'gear-small') {
+          components.push(new Component(null, 'gear-small', canvas.width / 2, canvas.height / 2, 30));
+        } else if (type === 'gear-medium') {
+          components.push(new Component(null, 'gear-medium', canvas.width / 2, canvas.height / 2, 50));
+        } else if (type === 'gear-large') {
+          components.push(new Component(null, 'gear-large', canvas.width / 2, canvas.height / 2, 70));
+        } else if (type === 'pulley') {
+          components.push(new Component(null, 'pulley', canvas.width / 2, canvas.height / 2, 35));
+        } else if (type === 'beam') {
+          components.push(new Component(null, 'beam', canvas.width / 2, canvas.height / 2, 20));
+        }
+        audio.playSnap();
+      });
+    });
+
+    // Belt Tool Toggle
+    document.getElementById('tool-belt').addEventListener('click', () => {
+      isBeltToolActive = !isBeltToolActive;
+      beltSourcePulley = null;
+      document.getElementById('tool-belt').classList.toggle('border-amber-400', isBeltToolActive);
+      document.getElementById('tool-belt').classList.toggle('bg-amber-900/40', isBeltToolActive);
+    });
+
+    // Mouse & Touch Events
+    canvas.addEventListener('mousedown', (e) => {
+      audio.init();
+      const pt = getCanvasPoint(e);
+      mousePos = pt;
+
+      // Check click on existing component
+      let clickedComp = null;
+      for (let i = components.length - 1; i >= 0; i--) {
+        const c = components[i];
+        const dist = Math.hypot(pt.x - c.x, pt.y - c.y);
+        if (dist <= c.radius + 5) {
+          clickedComp = c;
+          break;
+        }
+      }
+
+      if (isBeltToolActive) {
+        if (clickedComp && (clickedComp.type === 'pulley' || clickedComp.type.startsWith('gear') || clickedComp.type === 'motor')) {
+          if (!beltSourcePulley) {
+            beltSourcePulley = clickedComp;
+            audio.playClick();
+          } else if (beltSourcePulley !== clickedComp) {
+            // Create Belt Link
+            belts.push({ p1: beltSourcePulley, p2: clickedComp });
+            audio.playSnap();
+            beltSourcePulley = null;
+            isBeltToolActive = false;
+            document.getElementById('tool-belt').classList.remove('border-amber-400', 'bg-amber-900/40');
+          }
+        }
+        return;
+      }
+
+      if (clickedComp) {
+        selectedComponent = clickedComp;
+        if (!clickedComp.isFixed) {
+          draggingComponent = clickedComp;
+          dragOffset = { x: pt.x - clickedComp.x, y: pt.y - clickedComp.y };
+        }
+        audio.playClick();
+      } else {
+        selectedComponent = null;
+      }
+    });
+
+    canvas.addEventListener('mousemove', (e) => {
+      const pt = getCanvasPoint(e);
+      mousePos = pt;
+
+      if (draggingComponent) {
+        // Snap to Erector Grid
+        const rawX = pt.x - dragOffset.x;
+        const rawY = pt.y - dragOffset.y;
+        draggingComponent.x = Math.round(rawX / GRID_SIZE) * GRID_SIZE;
+        draggingComponent.y = Math.round(rawY / GRID_SIZE) * GRID_SIZE;
+      }
+    });
+
+    window.addEventListener('mouseup', () => {
+      if (draggingComponent) {
+        audio.playSnap();
+        draggingComponent = null;
+      }
+    });
+
+    // Trackpad / Mouse Wheel Rotation for Beam Linkages
+    canvas.addEventListener('wheel', (e) => {
+      if (selectedComponent && selectedComponent.type === 'beam') {
+        e.preventDefault();
+        selectedComponent.beamAngle += e.deltaY * 0.002;
+      }
+    }, { passive: false });
+
+    // Keyboard Shortcuts
+    window.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        togglePower();
+      } else if (e.code === 'KeyR' && selectedComponent && selectedComponent.type === 'beam') {
+        selectedComponent.beamAngle += Math.PI / 12; // 15-degree increments
+        audio.playClick();
+      } else if ((e.code === 'Delete' || e.code === 'Backspace') && selectedComponent && !selectedComponent.isFixed) {
+        // Delete selected component & associated belts
+        belts = belts.filter(b => b.p1 !== selectedComponent && b.p2 !== selectedComponent);
+        components = components.filter(c => c !== selectedComponent);
+        selectedComponent = null;
+        audio.playClick();
+      }
+    });
+
+    // --- Master Power Toggle ---
+    function togglePower() {
+      audio.init();
+      isRunning = !isRunning;
+      updatePowerButtonUI();
+
+      if (isRunning) {
+        audio.startMotorSound();
+      } else {
+        audio.stopMotorSound();
+      }
+    }
+
+    function updatePowerButtonUI() {
+      const btn = document.getElementById('btn-power');
+      const icon = document.getElementById('power-icon');
+      const text = document.getElementById('power-text');
+
+      if (isRunning) {
+        btn.classList.add('btn-power-active');
+        icon.className = 'fa-solid fa-stop';
+        text.innerText = 'DISENGAGE MOTOR';
+      } else {
+        btn.classList.remove('btn-power-active');
+        icon.className = 'fa-solid fa-play';
+        text.innerText = 'ENGAGE MOTOR';
+      }
+    }
+
+    document.getElementById('btn-power').addEventListener('click', togglePower);
+
+    // Header Controls & Level Select
+    document.getElementById('level-select').addEventListener('change', (e) => {
+      loadLevel(parseInt(e.target.value));
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+      loadLevel(currentLevel);
+    });
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      components = components.filter(c => c.isFixed);
+      belts = [];
+      audio.playClick();
+    });
+
+    document.getElementById('btn-next-level').addEventListener('click', () => {
+      const next = currentLevel === 0 ? 1 : (currentLevel >= 4 ? 0 : currentLevel + 1);
+      loadLevel(next);
+    });
+
+    // --- Initialize ---
+    loadLevel(1);
+    requestAnimationFrame(render);
+  </script>
+</body>
+</html>
